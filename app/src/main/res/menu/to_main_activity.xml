@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/main_screen_item"
+        android:title="Home Screen"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/scanner_menu_item"
+        android:title="Scanner"
+        app:showAsAction="never"/>
+
+</menu>
