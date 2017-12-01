@@ -6,11 +6,15 @@ package com.example.android.libraryisbninventory;
 
 public interface BookResultMVP {
 
-    public interface Presenter{
-
+    interface Presenter{
+        void OnCreateInitialization(String barcode);
+        void addBook();
     }
 
-    public interface View{
-
+    interface View{
+        void setBookViews(BookInfoObject bookInfo);
+        String getBookTextViewTitle();
+        String getBookTextViewAuthor();
+        String getImgUrl();
     }
 }

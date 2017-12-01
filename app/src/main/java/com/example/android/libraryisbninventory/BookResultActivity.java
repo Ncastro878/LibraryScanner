@@ -47,23 +47,15 @@ import java.net.URL;
  */
 public class BookResultActivity extends AppCompatActivity implements BookResultMVP.View{
 
-    final String ISBN_DB_KEY = "YGKMMUIN";
-    private SQLiteDatabase mDb;
-
     TextView mTextView;
     TextView mBookAuthorTextView;
     TextView mBookTitleTextView;
     ImageView mImageView;
     Button mAddBookButton;
-    String currentBookImgUrl;
+    String currentBookImgUrl = null;
 
-    /**
-     * MVP VARIABLE
-     */
+    //MVP-Presenter Variable
     BookResultMVP.Presenter presenter;
-
-    public BookResultActivity() throws MalformedURLException {
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,230 +68,53 @@ public class BookResultActivity extends AppCompatActivity implements BookResultM
         mImageView = (ImageView) findViewById(R.id.image_text_view);
         mAddBookButton = (Button) findViewById(R.id.add_book_button);
 
-        presenter = new BookResultPresenter(this);
-
-        BookListDbHelper dbHelper = new BookListDbHelper(this);
-        mDb = dbHelper.getWritableDatabase();
-        String barcode = getIntent().getStringExtra("code");
 
         // close the activity in case of empty barcode
+        String barcode = getIntent().getStringExtra("code");
         if (TextUtils.isEmpty(barcode)) {
             Toast.makeText(getApplicationContext(), "Barcode is empty!", Toast.LENGTH_LONG).show();
             finish();
         }
         mTextView.setText("The barcode read is: " + barcode);
-        new MyAsyncTask().execute(barcode);
+
+        presenter = new BookResultPresenter(this);
+        presenter.OnCreateInitialization(barcode);
 
         mAddBookButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addNewBook();
+                presenter.addBook();
                 Toast.makeText(BookResultActivity.this, "Book added ! " , Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void addNewBook() {
-        ContentValues cv = new ContentValues();
-        cv.put(BookListContract.BookListEntry.BOOK_AUTHOR, mBookAuthorTextView.getText().toString());
-        cv.put(BookListContract.BookListEntry.BOOK_TITLE, mBookTitleTextView.getText().toString());
-        cv.put(BookListContract.BookListEntry.BOOK_IMAGE_URL, currentBookImgUrl );
-        Long num = mDb.insert(BookListContract.BookListEntry.TABLE_NAME, null, cv);
-        Log.v("BookResultActivity.java", "Book inserted. num value is: " + num);
+    @Override
+    public String getBookTextViewTitle() {
+        return mBookTitleTextView.getText().toString();
     }
 
-    private String retrieveBookInfo(String barcode)  {
-        //Open connection to ISBNdb
-        //returns a stream of book info in JSON
-        InputStream stream = null;
-        String result = null;
-        try {
-            String url = buildUrl(barcode);
-            URL isbnUrl = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) isbnUrl.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            int status = connection.getResponseCode();
-            Log.d("retrieveBookInfo", "Status code is: " + status);
-            if(status != HttpURLConnection.HTTP_OK){
-                throw new IOException("HTTP code error: " + status);
-            }
-            stream = connection.getInputStream();
-            if(stream != null){
-                result = readStream(stream);
-            }
-        }catch (IOException e){
-            Log.e("BookResultActivity.this", "Error Detected: " + e);
-        }
-        return result;
+    @Override
+    public String getBookTextViewAuthor() {
+        return mBookAuthorTextView.getText().toString();
     }
 
-    private String readStream(InputStream stream)
-            throws IOException{
-        StringBuffer sb = new StringBuffer();
-        String inputLine = "";
-        BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-        while((inputLine = br.readLine()) != null){
-            sb.append(inputLine);
-        }
-        return sb.toString();
-    }
-
-    private String buildUrl(String isbn) {
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("http")
-                .authority("www.isbndb.com")
-                .appendPath("api")
-                .appendPath("v2")
-                .appendPath("json")
-                .appendPath(ISBN_DB_KEY)
-                .appendPath("book")
-                .appendPath(isbn);
-        String newUrl = builder.build().toString();
-        return newUrl;
-    }
-
-    public void setBookViews(BookInfoObject book){
+    @Override
+    public void setBookViews(BookInfoObject book) {
         if(book != null) {
             mBookTitleTextView.setText(book.title);
             mBookAuthorTextView.setText(book.author);
             Picasso.with(this).load(book.imgUrl).resize(200,0).into(mImageView);
+            //TODO: find hidden value/tag for this instead of a global value.
             currentBookImgUrl = book.imgUrl;
             Log.v("BookResultActivity", "Author info is: " + book.author);
         }
     }
 
-    private String getAuthorFromJson(String bookInfo) {
-        String author = null;
-        try {
-            JSONObject json = new JSONObject(bookInfo);
-            JSONArray jsonArray = json.getJSONArray("data");
-            JSONObject dataJson = jsonArray.getJSONObject(0);
-            JSONArray authorJson = dataJson.getJSONArray("author_data");
-            JSONObject authorObject = authorJson.getJSONObject(0);
-            String id = authorObject.getString("id");
-            String name = authorObject.getString("name");
-            return name;
-        }catch (JSONException e){
-            Log.e("BookResultActivity.this", "Error caught: " + e);
-        }
-        return null;
+    @Override
+    public String getImgUrl() {
+        return currentBookImgUrl;
     }
-
-    public class MyAsyncTask extends AsyncTask<String, Void, BookInfoObject>{
-
-        @Override
-        protected BookInfoObject doInBackground(String... urls) {
-            //String bookInfoStream = retrieveBookInfo(urls[0]);
-            String xmlDocument = retrieveGoodReadsBookInfo(urls[0]);
-            Log.v("BookResultActivity.java", "XMlDoc is: " + xmlDocument);
-            //String author = getAuthorFromJson(bookInfoStream);
-            //Log.d("MyAsynctask", "BookInfoStream is:" + bookInfoStream);
-            Log.d("MyAsyncTask", "DoinBackground done");
-            //Log.d("MyAsyncTask", "author info is: " + author);
-            //return author;
-            BookInfoObject book = null;
-            try {
-                book = parseXml(xmlDocument);
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return book;
-        }
-
-        @Override
-        protected void onPostExecute(BookInfoObject bookInfoObject) {
-            super.onPostExecute(bookInfoObject);
-            //mBookInfoTextView.setText(s);
-            BookResultActivity.this.setBookViews(bookInfoObject);
-        }
-    }
-
-    private String retrieveGoodReadsBookInfo(String barcode) {
-        //Open connection to ISBNdb
-        //returns a stream of book info in JSON
-        InputStream stream = null;
-        String result = null;
-        try {
-            String url = buildGoodReadsUrl(barcode);
-            URL isbnUrl = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) isbnUrl.openConnection();
-            connection.setRequestMethod("GET");
-            connection.connect();
-            int status = connection.getResponseCode();
-            Log.d("retrieveBookInfo", "Status code is: " + status);
-            if(status != HttpURLConnection.HTTP_OK){
-                throw new IOException("HTTP code error: " + status);
-            }
-            stream = connection.getInputStream();
-            if(stream != null){
-                result = readStream(stream);
-            }
-        }catch (IOException e){
-            Log.e("BookResultActivity.this", "Error Detected: " + e);
-        }
-        return result;
-    }
-
-    private String buildGoodReadsUrl(String isbn) {
-        String goodReadsKey = "lA0ttkYJJOCPPiKn0JWWMQ";
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("http")
-                .authority("www.goodreads.com")
-                .appendPath("search")
-                .appendPath("index.xml")
-                .appendQueryParameter("key", goodReadsKey)
-                .appendQueryParameter("q",isbn);
-        String newUrl = builder.build().toString();
-        return newUrl;
-    }
-
-    /**
-     * This tutorial was used as guidance:
-     * https://www.sitepoint.com/learning-to-parse-xml-data-in-your-android-app/
-     * (as was android documentation)
-     * @param xmlDocument
-     * @return BookInfoObject Oject
-     * @throws XmlPullParserException
-     * @throws IOException
-     */
-    private BookInfoObject parseXml(String xmlDocument) throws XmlPullParserException, IOException {
-        XmlPullParser parser = Xml.newPullParser();
-        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-        parser.setInput(new StringReader(xmlDocument));
-        Log.v("BookResultActivity.java", "Enacting parseXml().");
-        int eventType = parser.getEventType();
-        BookInfoObject newBook = new BookInfoObject();
-        while(eventType != XmlPullParser.END_DOCUMENT){
-            String name = null;
-            switch(eventType){
-                case XmlPullParser.START_TAG:
-                    name = parser.getName();
-                    Log.v("BookResultActivity.java","Event name is: " + name);
-                    if(name .equals( "title")){
-                        newBook.title = parser.nextText();
-                        Log.v("BookResultActivity.java","Book title is: " + newBook.title);
-                    }else if(name.equals("name")){
-                        newBook.author = parser.nextText();
-                        Log.v("BookResultActivity.java","Book author is: " + newBook.author);
-                    }else if(name.equals("image_url")){
-                        newBook.imgUrl = parser.nextText();
-                        Log.v("BookResultActivity.java","imgurl   is: " + newBook.imgUrl);
-                    }
-                    break;
-                case XmlPullParser.END_TAG:
-                    name = parser.getName();
-                    break;
-            }
-            eventType = parser.next();
-        }
-        Log.v("BookResultActivity.java", newBook.author + " is the author.");
-        Log.v("BookResultActivity.java", newBook.title + " is the title.");
-        return newBook;
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
