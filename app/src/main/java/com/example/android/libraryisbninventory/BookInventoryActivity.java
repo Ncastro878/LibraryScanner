@@ -53,7 +53,8 @@ public class BookInventoryActivity extends AppCompatActivity {
     }
 
     private static Cursor getAllBooks() {
-        return mDatabase.query(BookListContract.BookListEntry.TABLE_NAME,
+        return mDatabase.query(
+                BookListContract.BookListEntry.TABLE_NAME,
                 null, null, null, null, null, null);
     }
 

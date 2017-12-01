@@ -12,25 +12,18 @@ import android.view.View;
 
 /**
  * This is my Library Book Inventory app
- * I jacked the Barcode Scanner(& structure) from this tutorial:
- * https://www.androidhive.info/2017/08/android-barcode-scanner-using-google-mobile-vision-building-movie-tickets-app/
  *
- * Uses ISBNdb.com as the REST service for book info
+ * At first used ISBNdb.com as the REST service for book info
  * ISBNdb API Key = "YGKMMUIN"
+ *
+ * Now uses GoodsReads.com API
  */
 public class MainActivity extends AppCompatActivity {
-
-    private SQLiteDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        BookListDbHelper dbHelper = new BookListDbHelper(this);
-        mDb = dbHelper.getReadableDatabase(); //
-
-        Cursor cursor = getAllBooks();
 
         findViewById(R.id.btn_scan).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -38,13 +31,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, ScanActivity.class));
             }
         });
-    }
-
-    private Cursor getAllBooks() {
-        return mDb.query(
-                BookListContract.BookListEntry.TABLE_NAME,
-                null,null,null,null,null, null
-        );
     }
 
     @Override

@@ -57,18 +57,6 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
         Log.v("BookResultActivity.java", "Book inserted. num value is: " + num);
     }
 
-    private String readStream(InputStream stream)
-            throws IOException {
-        StringBuffer sb = new StringBuffer();
-        String inputLine = "";
-        BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
-        while((inputLine = br.readLine()) != null){
-            sb.append(inputLine);
-        }
-        return sb.toString();
-    }
-
-
     public class MyAsyncTask extends AsyncTask<String, Void, BookInfoObject> {
 
         BookResultPresenter mPresenter;
@@ -106,8 +94,6 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
     }
 
     private String retrieveBookInfoFromGoodReads(String barcode) {
-        //Open connection to ISBNdb
-        //returns a stream of book info in JSON
         InputStream stream = null;
         String result = null;
         try {
@@ -129,6 +115,16 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
             Log.e("BookResultActivity.this", "Error Detected: " + e);
         }
         return result;
+    }
+
+    private String readStream(InputStream stream) throws IOException {
+        StringBuffer sb = new StringBuffer();
+        String inputLine = "";
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+        while((inputLine = br.readLine()) != null){
+            sb.append(inputLine);
+        }
+        return sb.toString();
     }
 
     private String buildGoodReadsUrl(String isbn) {
