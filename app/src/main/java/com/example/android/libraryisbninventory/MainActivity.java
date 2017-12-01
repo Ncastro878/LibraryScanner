@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         //handle menu item selection
         switch(item.getItemId()){
             case R.id.inventory_menu_item:
-                startActivity(new Intent(MainActivity.this, BookInventory.class));
+                startActivity(new Intent(MainActivity.this, BookInventoryActivity.class));
                 return true;
             default:
                 return true;

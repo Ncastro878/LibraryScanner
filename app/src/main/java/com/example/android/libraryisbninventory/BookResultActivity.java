@@ -45,7 +45,7 @@ import java.net.URL;
  * https://www.goodreads.com/search/index.xml?key=lA0ttkYJJOCPPiKn0JWWMQ&q=[ISBN]
  *
  */
-public class TicketActivity extends AppCompatActivity {
+public class BookResultActivity extends AppCompatActivity implements BookResultMVP.View{
 
     final String ISBN_DB_KEY = "YGKMMUIN";
     private SQLiteDatabase mDb;
@@ -55,22 +55,28 @@ public class TicketActivity extends AppCompatActivity {
     TextView mBookTitleTextView;
     ImageView mImageView;
     Button mAddBookButton;
-
     String currentBookImgUrl;
 
-    public TicketActivity() throws MalformedURLException {
+    /**
+     * MVP VARIABLE
+     */
+    BookResultMVP.Presenter presenter;
+
+    public BookResultActivity() throws MalformedURLException {
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_ticket);
+        setContentView(R.layout.activity_book_result);
 
         mTextView = (TextView) findViewById(R.id.barcde_text_view);
         mBookAuthorTextView = (TextView) findViewById(R.id.book_author_text_view);
         mBookTitleTextView = (TextView) findViewById(R.id.book_title_text_view);
         mImageView = (ImageView) findViewById(R.id.image_text_view);
         mAddBookButton = (Button) findViewById(R.id.add_book_button);
+
+        presenter = new BookResultPresenter(this);
 
         BookListDbHelper dbHelper = new BookListDbHelper(this);
         mDb = dbHelper.getWritableDatabase();
@@ -88,7 +94,7 @@ public class TicketActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 addNewBook();
-                Toast.makeText(TicketActivity.this, "Book added ! " , Toast.LENGTH_SHORT).show();
+                Toast.makeText(BookResultActivity.this, "Book added ! " , Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -99,7 +105,7 @@ public class TicketActivity extends AppCompatActivity {
         cv.put(BookListContract.BookListEntry.BOOK_TITLE, mBookTitleTextView.getText().toString());
         cv.put(BookListContract.BookListEntry.BOOK_IMAGE_URL, currentBookImgUrl );
         Long num = mDb.insert(BookListContract.BookListEntry.TABLE_NAME, null, cv);
-        Log.v("TicketActivity.java", "Book inserted. num value is: " + num);
+        Log.v("BookResultActivity.java", "Book inserted. num value is: " + num);
     }
 
     private String retrieveBookInfo(String barcode)  {
@@ -123,7 +129,7 @@ public class TicketActivity extends AppCompatActivity {
                 result = readStream(stream);
             }
         }catch (IOException e){
-            Log.e("TicketActivity.this", "Error Detected: " + e);
+            Log.e("BookResultActivity.this", "Error Detected: " + e);
         }
         return result;
     }
@@ -153,13 +159,13 @@ public class TicketActivity extends AppCompatActivity {
         return newUrl;
     }
 
-    public void setBookViews(BookInfo book){
+    public void setBookViews(BookInfoObject book){
         if(book != null) {
             mBookTitleTextView.setText(book.title);
             mBookAuthorTextView.setText(book.author);
             Picasso.with(this).load(book.imgUrl).resize(200,0).into(mImageView);
             currentBookImgUrl = book.imgUrl;
-            Log.v("TicketActivity", "Author info is: " + book.author);
+            Log.v("BookResultActivity", "Author info is: " + book.author);
         }
     }
 
@@ -175,24 +181,24 @@ public class TicketActivity extends AppCompatActivity {
             String name = authorObject.getString("name");
             return name;
         }catch (JSONException e){
-            Log.e("TicketActivity.this", "Error caught: " + e);
+            Log.e("BookResultActivity.this", "Error caught: " + e);
         }
         return null;
     }
 
-    public class MyAsyncTask extends AsyncTask<String, Void, BookInfo>{
+    public class MyAsyncTask extends AsyncTask<String, Void, BookInfoObject>{
 
         @Override
-        protected BookInfo doInBackground(String... urls) {
+        protected BookInfoObject doInBackground(String... urls) {
             //String bookInfoStream = retrieveBookInfo(urls[0]);
             String xmlDocument = retrieveGoodReadsBookInfo(urls[0]);
-            Log.v("TicketActivity.java", "XMlDoc is: " + xmlDocument);
+            Log.v("BookResultActivity.java", "XMlDoc is: " + xmlDocument);
             //String author = getAuthorFromJson(bookInfoStream);
             //Log.d("MyAsynctask", "BookInfoStream is:" + bookInfoStream);
             Log.d("MyAsyncTask", "DoinBackground done");
             //Log.d("MyAsyncTask", "author info is: " + author);
             //return author;
-            BookInfo book = null;
+            BookInfoObject book = null;
             try {
                 book = parseXml(xmlDocument);
             } catch (XmlPullParserException e) {
@@ -204,10 +210,10 @@ public class TicketActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(BookInfo bookInfo) {
-            super.onPostExecute(bookInfo);
+        protected void onPostExecute(BookInfoObject bookInfoObject) {
+            super.onPostExecute(bookInfoObject);
             //mBookInfoTextView.setText(s);
-            TicketActivity.this.setBookViews(bookInfo);
+            BookResultActivity.this.setBookViews(bookInfoObject);
         }
     }
 
@@ -232,7 +238,7 @@ public class TicketActivity extends AppCompatActivity {
                 result = readStream(stream);
             }
         }catch (IOException e){
-            Log.e("TicketActivity.this", "Error Detected: " + e);
+            Log.e("BookResultActivity.this", "Error Detected: " + e);
         }
         return result;
     }
@@ -255,32 +261,32 @@ public class TicketActivity extends AppCompatActivity {
      * https://www.sitepoint.com/learning-to-parse-xml-data-in-your-android-app/
      * (as was android documentation)
      * @param xmlDocument
-     * @return BookInfo Oject
+     * @return BookInfoObject Oject
      * @throws XmlPullParserException
      * @throws IOException
      */
-    private BookInfo parseXml(String xmlDocument) throws XmlPullParserException, IOException {
+    private BookInfoObject parseXml(String xmlDocument) throws XmlPullParserException, IOException {
         XmlPullParser parser = Xml.newPullParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
         parser.setInput(new StringReader(xmlDocument));
-        Log.v("TicketActivity.java", "Enacting parseXml().");
+        Log.v("BookResultActivity.java", "Enacting parseXml().");
         int eventType = parser.getEventType();
-        BookInfo newBook = new BookInfo();
+        BookInfoObject newBook = new BookInfoObject();
         while(eventType != XmlPullParser.END_DOCUMENT){
             String name = null;
             switch(eventType){
                 case XmlPullParser.START_TAG:
                     name = parser.getName();
-                    Log.v("TicketActivity.java","Event name is: " + name);
+                    Log.v("BookResultActivity.java","Event name is: " + name);
                     if(name .equals( "title")){
                         newBook.title = parser.nextText();
-                        Log.v("TicketActivity.java","Book title is: " + newBook.title);
+                        Log.v("BookResultActivity.java","Book title is: " + newBook.title);
                     }else if(name.equals("name")){
                         newBook.author = parser.nextText();
-                        Log.v("TicketActivity.java","Book author is: " + newBook.author);
+                        Log.v("BookResultActivity.java","Book author is: " + newBook.author);
                     }else if(name.equals("image_url")){
                         newBook.imgUrl = parser.nextText();
-                        Log.v("TicketActivity.java","imgurl   is: " + newBook.imgUrl);
+                        Log.v("BookResultActivity.java","imgurl   is: " + newBook.imgUrl);
                     }
                     break;
                 case XmlPullParser.END_TAG:
@@ -289,8 +295,8 @@ public class TicketActivity extends AppCompatActivity {
             }
             eventType = parser.next();
         }
-        Log.v("TicketActivity.java", newBook.author + " is the author.");
-        Log.v("TicketActivity.java", newBook.title + " is the title.");
+        Log.v("BookResultActivity.java", newBook.author + " is the author.");
+        Log.v("BookResultActivity.java", newBook.title + " is the title.");
         return newBook;
     }
 
@@ -307,7 +313,7 @@ public class TicketActivity extends AppCompatActivity {
         //handle menu item selection
         switch(item.getItemId()){
             case R.id.inventory_menu_item:
-                startActivity(new Intent(TicketActivity.this, BookInventory.class));
+                startActivity(new Intent(BookResultActivity.this, BookInventoryActivity.class));
                 return true;
             default:
                 return true;

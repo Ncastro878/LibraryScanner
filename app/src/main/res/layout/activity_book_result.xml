@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_gradient"
-    tools:context="com.example.android.libraryisbninventory.TicketActivity">
+    tools:context="com.example.android.libraryisbninventory.BookResultActivity">
 
     <TextView
         android:id="@+id/barcde_text_view"
@@ -15,7 +15,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
-        android:text="TextView"
+        android:text="Barcode Number"
         android:textSize="20dp"
         android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -33,7 +33,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
         android:textColor="@android:color/white"
-        android:text="TextView"
+        android:text="Book Author"
         android:textSize="35dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -46,7 +46,7 @@
         android:id="@+id/book_title_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:text="Book Title"
         android:textSize="35dp"
         android:textColor="@android:color/white"
         android:layout_marginTop="49dp"

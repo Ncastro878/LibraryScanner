@@ -23,14 +23,13 @@ public class ScanActivity extends AppCompatActivity implements BarcodeReader.Bar
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
-
         mBarcodeReader = (BarcodeReader) getSupportFragmentManager().findFragmentById(R.id.barcode_scanner);
     }
 
     @Override
     public void onScanned(Barcode barcode) {
         // ticket details activity by passing barcode
-        Intent intent = new Intent(ScanActivity.this, TicketActivity.class);
+        Intent intent = new Intent(ScanActivity.this, BookResultActivity.class);
         intent.putExtra("code", barcode.displayValue);
         startActivity(intent);
     }
@@ -63,7 +62,7 @@ public class ScanActivity extends AppCompatActivity implements BarcodeReader.Bar
         //handle menu item selection
         switch(item.getItemId()){
             case R.id.inventory_menu_item:
-                startActivity(new Intent(ScanActivity.this, BookInventory.class));
+                startActivity(new Intent(ScanActivity.this, BookInventoryActivity.class));
                 return true;
             default:
                 return true;

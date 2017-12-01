@@ -20,8 +20,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ScanActivity" />
-        <activity android:name=".TicketActivity" />
-        <activity android:name=".BookInventory"></activity>
+        <activity android:name=".BookResultActivity" />
+        <activity android:name=".BookInventoryActivity"></activity>
     </application>
 
 </manifest>

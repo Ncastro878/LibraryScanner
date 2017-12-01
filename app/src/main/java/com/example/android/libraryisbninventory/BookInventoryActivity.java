@@ -3,7 +3,6 @@ package com.example.android.libraryisbninventory;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.media.Image;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,7 +19,7 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-public class BookInventory extends AppCompatActivity {
+public class BookInventoryActivity extends AppCompatActivity {
 
     /**
      * RecyclerView Variables
@@ -95,11 +94,11 @@ public class BookInventory extends AppCompatActivity {
                         String title = MyAdapter.mCursor
                                 .getString(mCursor.getColumnIndex(BookListContract.BookListEntry.BOOK_TITLE));
                         long id = mCursor.getLong(mCursor.getColumnIndex(BookListContract.BookListEntry._ID));
-                        if(BookInventory.removeBook(id)){
+                        if(BookInventoryActivity.removeBook(id)){
                             Toast.makeText(view.getContext(),
                                     "Deleted: " + title ,
                                     Toast.LENGTH_SHORT).show();
-                            swapCursor(BookInventory.getAllBooks());
+                            swapCursor(BookInventoryActivity.getAllBooks());
                         };
                     }
 
@@ -153,10 +152,10 @@ public class BookInventory extends AppCompatActivity {
         //handle menu item selection
         switch(item.getItemId()){
             case R.id.scanner_menu_item:
-                startActivity(new Intent(BookInventory.this, ScanActivity.class));
+                startActivity(new Intent(BookInventoryActivity.this, ScanActivity.class));
                 return true;
             case R.id.main_screen_item:
-                startActivity(new Intent(BookInventory.this, MainActivity.class));
+                startActivity(new Intent(BookInventoryActivity.this, MainActivity.class));
             default:
                 return true;
         }
