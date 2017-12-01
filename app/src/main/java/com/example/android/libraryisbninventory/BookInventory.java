@@ -91,9 +91,8 @@ public class BookInventory extends AppCompatActivity {
             public void onClick(View view) {
                 if(view.getId() == mDeleteImage.getId()){
                     int pos = getAdapterPosition();
-                    String title = "";
                     if (MyAdapter.mCursor.moveToPosition(pos)) {
-                        title = MyAdapter.mCursor
+                        String title = MyAdapter.mCursor
                                 .getString(mCursor.getColumnIndex(BookListContract.BookListEntry.BOOK_TITLE));
                         long id = mCursor.getLong(mCursor.getColumnIndex(BookListContract.BookListEntry._ID));
                         if(BookInventory.removeBook(id)){
