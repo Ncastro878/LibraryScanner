@@ -17,4 +17,6 @@ Tools/Concepts/Libraries used and learned while building this:
 
 - Recyclerview
 
+- Picasso
+
 ![](/libscan_2_-iloveimg-resized.jpg)
