@@ -1,15 +1,10 @@
 package com.example.android.libraryisbninventory;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Xml;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,21 +16,6 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 /**
  * Currently using www.ISBNdb.com.
  *
@@ -43,9 +23,8 @@ import java.net.URL;
  * for book look ups.
  * Goodreads url example:
  * https://www.goodreads.com/search/index.xml?key=lA0ttkYJJOCPPiKn0JWWMQ&q=[ISBN]
- *
  */
-public class BookResultActivity extends AppCompatActivity implements BookResultMVP.View{
+public class BookResultViewActivity extends AppCompatActivity implements BookResultMVP.View{
 
     TextView mTextView;
     TextView mBookAuthorTextView;
@@ -68,23 +47,22 @@ public class BookResultActivity extends AppCompatActivity implements BookResultM
         mImageView = (ImageView) findViewById(R.id.image_text_view);
         mAddBookButton = (Button) findViewById(R.id.add_book_button);
 
-
         // close the activity in case of empty barcode
-        String barcode = getIntent().getStringExtra("code");
-        if (TextUtils.isEmpty(barcode)) {
+        String barcodeString = getIntent().getStringExtra("code");
+        if (TextUtils.isEmpty(barcodeString)) {
             Toast.makeText(getApplicationContext(), "Barcode is empty!", Toast.LENGTH_LONG).show();
             finish();
         }
-        mTextView.setText("The barcode read is: " + barcode);
+        mTextView.setText("The barcode read is: " + barcodeString);
 
         presenter = new BookResultPresenter(this);
-        presenter.OnCreateInitialization(barcode);
+        presenter.OnCreateInitialization(barcodeString);
 
         mAddBookButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 presenter.addBook();
-                Toast.makeText(BookResultActivity.this, "Book added ! " , Toast.LENGTH_SHORT).show();
+                Toast.makeText(BookResultViewActivity.this, "Book added ! " , Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -107,13 +85,19 @@ public class BookResultActivity extends AppCompatActivity implements BookResultM
             Picasso.with(this).load(book.imgUrl).resize(200,0).into(mImageView);
             //TODO: find hidden value/tag for this instead of a global value.
             currentBookImgUrl = book.imgUrl;
-            Log.v("BookResultActivity", "Author info is: " + book.author);
+            Log.v("BookResultViewActivity", "Author info is: " + book.author);
         }
     }
 
+    //TODO: Change this tactic because global variables are smelly code.
     @Override
     public String getImgUrl() {
         return currentBookImgUrl;
+    }
+
+    @Override
+    public void setImgUrl(String url) {
+
     }
 
     @Override
@@ -128,7 +112,7 @@ public class BookResultActivity extends AppCompatActivity implements BookResultM
         //handle menu item selection
         switch(item.getItemId()){
             case R.id.inventory_menu_item:
-                startActivity(new Intent(BookResultActivity.this, BookInventoryActivity.class));
+                startActivity(new Intent(BookResultViewActivity.this, BookInventoryViewActivity.class));
                 return true;
             default:
                 return true;

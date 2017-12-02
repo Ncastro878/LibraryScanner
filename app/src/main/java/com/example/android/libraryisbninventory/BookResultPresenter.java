@@ -27,18 +27,19 @@ import java.net.URL;
 
 public class BookResultPresenter implements BookResultMVP.Presenter {
 
+    private String TAG = "BookResultPresenter";
     //MVP - View variable
-    private BookResultMVP.View BookResultActiviyView;
+    private BookResultMVP.View bookResultActiviyView;
     private final String ISBN_DB_KEY = "YGKMMUIN";
     private SQLiteDatabase mDb;
 
     public BookResultPresenter(BookResultMVP.View view) {
-        this.BookResultActiviyView = view;
+        this.bookResultActiviyView = view;
     }
 
     @Override
     public void OnCreateInitialization(String barcode) {
-        BookListDbHelper dbHelper = new BookListDbHelper((BookResultActivity) BookResultActiviyView);
+        BookListDbHelper dbHelper = new BookListDbHelper((BookResultViewActivity) bookResultActiviyView);
         mDb = dbHelper.getWritableDatabase();
         new MyAsyncTask(this).execute(barcode);
     }
@@ -48,13 +49,19 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
         addNewBookToDB();
     }
 
+    //Test
+    @Override
+    public void setViewImgUrl(String url) {
+        bookResultActiviyView.setImgUrl(url);
+    }
+
     private void addNewBookToDB() {
         ContentValues cv = new ContentValues();
-        cv.put(BookListContract.BookListEntry.BOOK_AUTHOR, BookResultActiviyView.getBookTextViewAuthor());
-        cv.put(BookListContract.BookListEntry.BOOK_TITLE, BookResultActiviyView.getBookTextViewTitle());
-        cv.put(BookListContract.BookListEntry.BOOK_IMAGE_URL, BookResultActiviyView.getImgUrl() );
+        cv.put(BookListContract.BookListEntry.BOOK_AUTHOR, bookResultActiviyView.getBookTextViewAuthor());
+        cv.put(BookListContract.BookListEntry.BOOK_TITLE, bookResultActiviyView.getBookTextViewTitle());
+        cv.put(BookListContract.BookListEntry.BOOK_IMAGE_URL, bookResultActiviyView.getImgUrl() );
         Long num = mDb.insert(BookListContract.BookListEntry.TABLE_NAME, null, cv);
-        Log.v("BookResultActivity.java", "Book inserted. num value is: " + num);
+        Log.v(TAG, "Book inserted. num value is: " + num);
     }
 
     public class MyAsyncTask extends AsyncTask<String, Void, BookInfoObject> {
@@ -68,7 +75,7 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
         @Override
         protected BookInfoObject doInBackground(String... urls) {
             String xmlDocument = retrieveBookInfoFromGoodReads(urls[0]);
-            Log.v("BookResultActivity.java", "XMlDoc is: " + xmlDocument);
+            Log.v(TAG, "XMlDoc is: " + xmlDocument);
             Log.d("MyAsyncTask", "DoinBackground done");
             BookInfoObject book = null;
             try {
@@ -84,13 +91,12 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
         @Override
         protected void onPostExecute(BookInfoObject bookInfoObject) {
             super.onPostExecute(bookInfoObject);
-            //mBookInfoTextView.setText(s);
             mPresenter.setBookViewsInView(bookInfoObject);
         }
     }
 
     public void setBookViewsInView(BookInfoObject book){
-        BookResultActiviyView.setBookViews(book);
+        bookResultActiviyView.setBookViews(book);
     }
 
     private String retrieveBookInfoFromGoodReads(String barcode) {
@@ -112,7 +118,7 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
                 result = readStream(stream);
             }
         }catch (IOException e){
-            Log.e("BookResultActivity.this", "Error Detected: " + e);
+            Log.e(TAG, "Error Detected: " + e);
         }
         return result;
     }
@@ -153,7 +159,7 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
         XmlPullParser parser = Xml.newPullParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
         parser.setInput(new StringReader(xmlDocument));
-        Log.v("BookResultActivity.java", "Enacting parseXml().");
+        Log.v(TAG, "Enacting parseXml().");
         int eventType = parser.getEventType();
         BookInfoObject newBook = new BookInfoObject();
         while(eventType != XmlPullParser.END_DOCUMENT){
@@ -161,16 +167,16 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
             switch(eventType){
                 case XmlPullParser.START_TAG:
                     name = parser.getName();
-                    Log.v("BookResultActivity.java","Event name is: " + name);
+                    Log.v(TAG,"Event name is: " + name);
                     if(name .equals( "title")){
                         newBook.title = parser.nextText();
-                        Log.v("BookResultActivity.java","Book title is: " + newBook.title);
+                        Log.v(TAG,"Book title is: " + newBook.title);
                     }else if(name.equals("name")){
                         newBook.author = parser.nextText();
-                        Log.v("BookResultActivity.java","Book author is: " + newBook.author);
+                        Log.v(TAG,"Book author is: " + newBook.author);
                     }else if(name.equals("image_url")){
                         newBook.imgUrl = parser.nextText();
-                        Log.v("BookResultActivity.java","imgurl   is: " + newBook.imgUrl);
+                        Log.v(TAG,"imgurl   is: " + newBook.imgUrl);
                     }
                     break;
                 case XmlPullParser.END_TAG:
@@ -179,8 +185,8 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
             }
             eventType = parser.next();
         }
-        Log.v("BookResultActivity.java", newBook.author + " is the author.");
-        Log.v("BookResultActivity.java", newBook.title + " is the title.");
+        Log.v(TAG, newBook.author + " is the author.");
+        Log.v(TAG, newBook.title + " is the title.");
         return newBook;
     }
 
@@ -213,7 +219,7 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
                 result = readStream(stream);
             }
         }catch (IOException e){
-            Log.e("BookResultActivity.this", "Error Detected: " + e);
+            Log.e(TAG, "Error Detected: " + e);
         }
         return result;
     }
@@ -244,7 +250,7 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
             String name = authorObject.getString("name");
             return name;
         }catch (JSONException e){
-            Log.e("BookResultActivity.this", "Error caught: " + e);
+            Log.e(TAG, "Error caught: " + e);
         }
         return null;
     }

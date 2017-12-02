@@ -9,6 +9,8 @@ public interface BookResultMVP {
     interface Presenter{
         void OnCreateInitialization(String barcode);
         void addBook();
+        //test method
+        void setViewImgUrl(String url);
     }
 
     interface View{
@@ -16,5 +18,7 @@ public interface BookResultMVP {
         String getBookTextViewTitle();
         String getBookTextViewAuthor();
         String getImgUrl();
+        //test method
+        void setImgUrl(String url);
     }
 }

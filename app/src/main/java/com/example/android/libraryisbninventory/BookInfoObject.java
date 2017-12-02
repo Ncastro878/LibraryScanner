@@ -8,7 +8,6 @@ public class BookInfoObject {
     public String title;
     public String author;
     public String imgUrl;
-
     public String[] returnInfo(){
         String[] info = {title, author, imgUrl};
         return info;
