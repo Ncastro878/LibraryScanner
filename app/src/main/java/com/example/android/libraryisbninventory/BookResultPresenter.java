@@ -21,6 +21,8 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import javax.net.ssl.HttpsURLConnection;
+
 /**
  * Created by nick on 12/1/2017.
  */
@@ -105,11 +107,12 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
         try {
             String url = buildGoodReadsUrl(barcode);
             URL isbnUrl = new URL(url);
-            HttpURLConnection connection = (HttpURLConnection) isbnUrl.openConnection();
+            HttpsURLConnection connection = (HttpsURLConnection) isbnUrl.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
             int status = connection.getResponseCode();
-            Log.d("retrieveBookInfo", "Status code is: " + status);
+            Log.v("retrieveBookInfo", "Status code is: " + status);
+            Log.v("retrieveBookInfo", connection.getContent().toString());
             if(status != HttpURLConnection.HTTP_OK){
                 throw new IOException("HTTP code error: " + status);
             }
@@ -136,13 +139,14 @@ public class BookResultPresenter implements BookResultMVP.Presenter {
     private String buildGoodReadsUrl(String isbn) {
         String goodReadsKey = "lA0ttkYJJOCPPiKn0JWWMQ";
         Uri.Builder builder = new Uri.Builder();
-        builder.scheme("http")
+        builder.scheme("https")
                 .authority("www.goodreads.com")
                 .appendPath("search")
                 .appendPath("index.xml")
                 .appendQueryParameter("key", goodReadsKey)
                 .appendQueryParameter("q",isbn);
         String newUrl = builder.build().toString();
+        Log.v(TAG, newUrl);
         return newUrl;
     }
 
